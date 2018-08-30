@@ -64,4 +64,4 @@ JOIN
 	ub_vw_customer_maint customerMaint
 ON
 	balance.customer_id = customerMaint.customer_id
-ORDER BY [~CUSTOMERID~]
+ORDER BY [~CUSTOMERID~], [~LOCATIONID~]
