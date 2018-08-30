@@ -1,0 +1,23 @@
+--Can't use decode_matrix as some models are excluded
+
+SELECT "METERSETUPTYPE" = left('',4)
+     ,  "BUILTCONFIG" = left('', 4)
+     ,  "INSTALLCONFIG" = left('', 4)
+     ,  "BILLEDFLAG" = left('', 1)
+     ,  "REGISTERNUM" = left('', 2)
+     ,  "REGISTERCONFIG" = left('',4)
+     ,  "METERMAKE" = left('', 4)
+     ,  "METERSIZE" = left('', 4)
+     ,  "METERKIND" = left('', 4)
+     ,  "METERMODEL" = left('', 4)
+     ,  "DIALS" = left('', 2)
+     ,  "DEADZEROES" = left('', 2)
+     ,  "READTYPE" = left('', 2)
+     ,  "TESTCIRCLE" = left('', 2)
+     ,  "AMPS" = left('', 4)
+     ,  "VOLTS" = left('', 6)
+     ,  "FLEXFIELD1" = left('', 4)
+     ,  "FLEXFIELD2" = left('', 4)
+     ,  "FLEXFIELD3" = left('', 4)
+     ,  "UPDATEDATE" = left('', 8)
+
