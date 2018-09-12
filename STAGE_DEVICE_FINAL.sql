@@ -17,6 +17,11 @@ Instructions:
 	Run against OASIS (Principal, Synchronized)
 	located on SRVCH-SQLDB1\WATER, SQL Server 2008 R2
 
+	The SS_Meters table is a flat file CSV export created 
+	by Dan McMahon. We'll use this table as a device lookup
+	since Inhance is missing this information. This CSV 
+	and table are subject to change.
+
 	Export results set as a CSV file. Include headers.
 	With your text editor, replace the "~" with a single
 	double-quote (") so CSV will know what is a string
@@ -78,7 +83,7 @@ SELECT
 	NULL AS '~ASSETTAXDISTRICT~',
 	'~~' AS '~BIDIRECTIONALFLAG~',
 	'~~' AS '~PRIVATELYOWNED~',
-	'~' + LEFT(meter.MeterLocation,50) + '~' AS '~COMMENTS~',
+	'~' + LEFT(REPLACE(REPLACE(meter.MeterLocation, ',',''),'"', ''),50) + '~' AS '~COMMENTS~',
 	NULL AS '~BATTERYDATE~',
 	NULL AS '~AMIFLAG~',
 	NULL AS '~AMITYPE~',
@@ -135,7 +140,7 @@ SELECT
 	NULL AS '~ASSETTAXDISTRICT~',
 	'~~' AS '~BIDIRECTIONALFLAG~',
 	'~~' AS '~PRIVATELYOWNED~',
-	'~' + LEFT(meter.MeterLocation,50) + '~' AS '~COMMENTS~',
+	'~' + LEFT(REPLACE(REPLACE(meter.MeterLocation, ',',''),'"', ''),50) + '~' AS '~COMMENTS~',
 	NULL AS '~BATTERYDATE~',
 	NULL AS '~AMIFLAG~',
 	NULL AS '~AMITYPE~',
@@ -167,12 +172,12 @@ SELECT
 	2 AS '~OTHERDEVICETYPE2~',
 	'~' + LEFT(meter.SerialNumber, 12) + '~' AS '~OTHERDEVICEID2~',
 	'~N~' AS '~OTHERDEVICEMARRY2~',
-	NULL AS '~METERMAKE~',
-	NULL AS '~METERSIZE~',
+	deviceLookup.Make_ AS '~METERMAKE~',
+	deviceLookup.Meter_Size_Index AS '~METERSIZE~',
 	NULL AS '~METERKIND~',
-	NULL AS '~METERMODEL~',
-	NULL AS '~DIALS~',
-	NULL AS '~DEADZEROES~',
+	deviceLookup.meter_id_num AS '~METERMODEL~',
+	deviceLookup.Total_of_dials AS '~DIALS~',
+	deviceLookup.Dead_Zeros_S_S AS '~DEADZEROES~',
 	'~READTYPE~' = 
 		CASE -- 'M' is a manual read, 'I' is an instrument read
 			WHEN meter.Handheld ='M' THEN 0
@@ -196,7 +201,7 @@ SELECT
 	NULL AS '~ASSETTAXDISTRICT~',
 	'~~' AS '~BIDIRECTIONALFLAG~',
 	'~~' AS '~PRIVATELYOWNED~',
-	'~' + LEFT(meter.MeterLocation,50) + '~' AS '~COMMENTS~',
+	'~' + LEFT(REPLACE(REPLACE(meter.MeterLocation, ',',''),'"', ''),50) + '~' AS '~COMMENTS~',
 	NULL AS '~BATTERYDATE~',
 	'~AMIFLAG~' = 
 		CASE --If we have a meter with a serial number, it's an AMI type
@@ -211,6 +216,16 @@ SELECT
 	CONVERT(char(10), GetDate(),126)  AS '~UPDATEDATE~'
 FROM
 	vw_meter meter
+JOIN
+	ub_vw_meter_maint meterMaint
+ON -- Grab the Meter Maintenance table for the model_id field
+	meterMaint.location_id = meter.location_id AND
+	meterMaint.meter_id = meter.meter_id
+LEFT JOIN
+	SS_Meters deviceLookup
+ON -- Grab SS_Meters as a device lookup for fields S&S enQuesta needs
+	deviceLookup.model_id = meterMaint.model_id
+	
 WHERE
 	meter.MeterNumber IS NOT NULL AND meter.location_id <> 1
 ORDER BY [~DEVICETYPE~] DESC -- We need ERTs and Registers to be fed into the system first before meters
