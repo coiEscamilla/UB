@@ -42,23 +42,23 @@ SELECT DISTINCT
 	2 AS '~READINGCODE~',
 	'~READTYPE~' = 
 		CASE
-			WHEN reading.Estimated LIKE '%N%' THEN 0 -- 'N' is an Actual Read
+			WHEN meterReading.Estimated LIKE '%N%' THEN 0 -- 'N' is an Actual Read
 			ELSE 1                                   -- 'Y' is an Estimated Read
 		END,
-	reading.read_dt AS '~CURREADDATE~',
-	reading.prev_dt AS '~PREVREADDATE~',
-	reading.reading AS '~CURREADING~',
-	NULL AS '~PREVREADING~',
-	NULL AS '~RAWUSAGE~',
+	CONVERT(CHAR(10), reading.ReadDate, 126) AS '~CURREADDATE~',
+	CONVERT(CHAR(10), meterReading.prev_dt, 126) AS '~PREVREADDATE~',
+	reading.Reading AS '~CURREADING~',
+	(reading.Reading - reading.Usage) AS '~PREVREADING~',
+	reading.Usage AS '~RAWUSAGE~',
 	NULL AS '~BILLINGUSAGE~',
-	NULL AS '~METERMULTIPLIER~',
+	1.0 AS '~METERMULTIPLIER~',
 	NULL AS '~BILLEDDATE~',
 	NULL AS '~THERMFACTOR~',
 	'~~' AS '~READERID~',
 	NULL AS '~BILLEDAMOUNT~',
 	NULL AS '~BILLINGBATCHNUMBER~',
-	NULL AS '~BILLINGRATE~',
-	NULL AS '~SALESREVENUECLASS~',
+	99 AS '~BILLINGRATE~',
+	99 AS '~SALESREVENUECLASS~',
 	NULL AS '~HEATINGDEGREEDAYS~',
 	NULL AS '~COOLINGDEGREEDAYS~',
 	CONVERT(char(10), GetDate(),126)  AS '~UPDATEDATE~'
@@ -67,12 +67,18 @@ FROM
 JOIN
 	vw_customer customer
 ON
-	meterMaint.customer_id = customer.customer_id
+	customer.customer_id = meterMaint.customer_id
 JOIN
-	ub_meter_read reading
+	vw_reading reading
 ON
-	meterMaint.location_id = reading.location_id AND
-	meterMaint.meter_id = reading.meter_id
+	reading.location_id = meterMaint.location_id AND
+	reading.meter_id = meterMaint.meter_id
+JOIN
+	ub_meter_read meterReading
+ON
+	meterReading.location_id = meterMaint.location_id  AND
+	meterReading.meter_id = meterMaint.meter_id AND
+	meterReading.read_dt = reading.ReadDate -- We only want the latest record from this ub_meter_read table
 WHERE
 	meterMaint.location_id <> 1
 ORDER BY [~CUSTOMERID~]
