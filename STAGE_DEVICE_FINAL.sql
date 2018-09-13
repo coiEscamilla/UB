@@ -42,7 +42,7 @@ TODO:
 ****************************************************/
 
 -- ERT Query
-SELECT
+SELECT DISTINCT
 	3 AS '~APPLICATION~',
 	2 AS '~DEVICETYPE~', -- 2=ERT
 	'~' + meter.SerialNumber + '~' AS '~METERNUMBER~',
@@ -99,7 +99,7 @@ WHERE
 UNION ALL
 
 -- Register Query
-SELECT
+SELECT DISTINCT
 	3 AS '~APPLICATION~',
 	1 AS '~DEVICETYPE~', -- 1 = Regster 
 	'~' + LEFT(meter.AlternateMeterNumber,12) + '~' AS '~METERNUMBER~',
@@ -156,7 +156,7 @@ WHERE
 UNION ALL
 
 -- Meter Query
-SELECT
+SELECT DISTINCT
 	3 AS '~APPLICATION~',
 	0 AS '~DEVICETYPE~', -- 0 = Meter
 	'~' + LEFT(meter.MeterNumber,12) + '~' AS '~METERNUMBER~',
@@ -166,18 +166,47 @@ SELECT
 	'~Y~' AS '~BILLEDFLAG~',
 	1 AS '~REGISTERCONFIG~',
 	'~' + LEFT(meter.MeterNumber, 12) + '~' AS '~SERIALNUMBER~',
-	1 AS '~OTHERDEVICETYPE1~',
+	'~OTHERDEVICETYPE1~' = 
+		CASE -- Check to see if this meter has a register
+			WHEN meter.AlternateMeterNumber IS NULL THEN NULL
+			WHEN LEN(meter.AlternateMeterNumber) < 1 THEN NULL
+			ELSE 1
+		END,
 	'~' + LEFT(meter.AlternateMeterNumber,12) + '~' AS '~OTHERDEVICEID1~',
 	'~N~' AS '~OTHERDEVICEMARRY1~',
-	2 AS '~OTHERDEVICETYPE2~',
+	'~OTHERDEVICETYPE2~' = 
+		CASE -- Check to see if this meter has an ERT
+			WHEN meter.SerialNumber IS NULL THEN NULL
+			WHEN LEN(meter.SerialNumber) < 1 THEN NULL
+			ELSE 2
+		END,
 	'~' + LEFT(meter.SerialNumber, 12) + '~' AS '~OTHERDEVICEID2~',
 	'~N~' AS '~OTHERDEVICEMARRY2~',
-	deviceLookup.Make_ AS '~METERMAKE~',
-	deviceLookup.Meter_Size_Index AS '~METERSIZE~',
+	'~METERMAKE~' = 
+		CASE
+			WHEN deviceLookup.Make_ IS NULL THEN 99 -- Default
+			ELSE deviceLookup.Make_
+		END,
+	'~METERSIZE~' = 
+		CASE
+			WHEN deviceLookup.Meter_Size_Index IS NULL THEN 99 -- Default
+			ELSE deviceLookup.Meter_Size_Index
+		END,
 	NULL AS '~METERKIND~',
-	deviceLookup.meter_id_num AS '~METERMODEL~',
-	deviceLookup.Total_of_dials AS '~DIALS~',
-	deviceLookup.Dead_Zeros_S_S AS '~DEADZEROES~',
+	'~METERMODEL~' = 
+		CASE  
+			WHEN deviceLookup.meter_id_num IS NULL THEN 99 -- Default
+			ELSE deviceLookup.meter_id_num END,
+	'~DIALS~' = 
+		CASE
+			WHEN deviceLookup.Total_of_dials IS NULL THEN 99 -- Deafault
+			ELSE deviceLookup.Total_of_dials
+		END,
+	'~DEADZEROES~' = 
+		CASE
+			WHEN deviceLookup.Dead_Zeros_S_S IS NULL THEN 99 -- Default
+			ELSE deviceLookup.Total_of_dials
+		END,
 	'~READTYPE~' = 
 		CASE -- 'M' is a manual read, 'I' is an instrument read
 			WHEN meter.Handheld ='M' THEN 0
