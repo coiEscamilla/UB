@@ -80,6 +80,6 @@ ON
 	meterReading.meter_id = meterMaint.meter_id AND
 	meterReading.read_dt = reading.ReadDate -- We only want the latest record from this ub_meter_read table
 WHERE
-	meterMaint.location_id <> 1
+	meterMaint.location_id <> 1 -- Avoid warehouse meters
 ORDER BY [~CUSTOMERID~]
 	

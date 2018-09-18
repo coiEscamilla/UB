@@ -35,29 +35,26 @@ TODO:
 ****************************************************/
 SELECT
 	'~' + LEFT(home.customer_id,15) + '~' AS '~CUSTOMERID~',
-	home.HomePhoneNumber AS '~PHONENUMBER~',
-	1                    AS '~PHONETYPE~',
-                            '~PHONEEXT~' 
-	=  SUBSTRING(HomePhoneNumber, 11, LEN(HomePhoneNumber)) ,                
-	                     
-	'~' + REPLACE(home.FirstNameFirst,',','') + '~' AS '~CONTACT~',
+	LEFT(REPLACE(home.HomePhoneNumber,' ', ''),10) AS '~PHONENUMBER~',
+	1 AS '~PHONETYPE~',
+    '~PHONEEXT~' =  SUBSTRING(HomePhoneNumber, 11, LEN(HomePhoneNumber)) ,                                     
+	'~' + LEFT(REPLACE(home.FirstNameFirst,',',''),30) + '~' AS '~CONTACT~',
 	'~' + home.Title + '~' AS '~TITLE~',
-	1                    AS '~PRIORITY~',
+	1 AS '~PRIORITY~',
 	CONVERT(char(10), GetDate(),126) AS '~UPDATEDATE~'
 FROM 
 	vw_customer home
 WHERE 
 	home.HomePhoneNumber IS NOT NULL AND
-	LEN(home.HomePhoneNumber) = 10
+	LEN(home.HomePhoneNumber) > 9
 UNION ALL 
 
 SELECT
 	'~' + LEFT(cell.customer_id,15) + '~' AS '~CUSTOMERID~',
-	cell.cell_phone_num AS '~PHONENUMBER~',
+	LEFT(REPLACE(cell.cell_phone_num, ' ', ''),10) AS '~PHONENUMBER~',
 	2 AS '~PHONETYPE~',
-	      '~PHONEEX~T'
-	=  SUBSTRING(cell_phone_num, 11, LEN(cell_phone_num)) , 
-	'~' + REPLACE(cell.FirstNameFirst,',','') + '~' AS '~CONTACT~',
+	'~PHONEEXT~' =  SUBSTRING(cell_phone_num, 11, LEN(cell_phone_num)) , 
+	'~' + LEFT(REPLACE(cell.FirstNameFirst,',',''),30) + '~' AS '~CONTACT~',
 	'~' + cell.Title + '~' AS '~TITLE~',
 	1 AS '~PRIORITY~',
 	CONVERT(char(10), GetDate(),126)  AS '~UPDATEDATE~'
@@ -65,22 +62,20 @@ FROM
 	vw_customer cell
 WHERE
 	cell.cell_phone_num IS NOT NULL AND
-	LEN(cell.cell_phone_num) = 10
-
+	LEN(cell.cell_phone_num) > 9 
 UNION ALL
 
 SELECT
 	'~' + LEFT(work.customer_id,15) + '~' AS '~CUSTOMERID~',
-	work.WorkPhoneNumber AS '~PHONENUMBER~',
+	LEFT(REPLACE(work.WorkPhoneNumber, ' ', ''), 10) AS '~PHONENUMBER~',
 	3 AS '~PHONETYPE~',
-	     '~PHONEEXT~'
-	=  SUBSTRING(WorkPhoneNumber, 11, LEN(WorkPhoneNumber)) , 
-	'~' + REPLACE(work.FirstNameFirst,',','') + '~'   AS '~CONTACT~',
+    '~PHONEEXT~' =  SUBSTRING(WorkPhoneNumber, 11, LEN(WorkPhoneNumber)) , 
+	'~' + LEFT(REPLACE(work.FirstNameFirst,',',''),30) + '~'   AS '~CONTACT~',
 	'~' + work.Title + '~' AS '~TITLE~',
-	1                    AS '~PRIORITY~',
+	1 AS '~PRIORITY~',
 	CONVERT(char(10), GetDate(),126)  AS '~UPDATEDATE~'
 FROM vw_customer work
 WHERE
 	work.WorkPhoneNumber IS NOT NULL AND
-	LEN(work.WorkPhoneNumber) = 10
+	LEN(work.WorkPhoneNumber) > 9
 ORDER BY [~CUSTOMERID~]

@@ -71,18 +71,19 @@ SELECT DISTINCT
 	1 AS '~BILLINGRATE~',
 	99 as '~SALESCLASS~',
 	0 AS '~READSEQUENCE~',
-	NULL as '~LASTREADDATE~',
+	NULL as '~LASTREADDATE~', -- current read date
 	1.00 as '~MULTIPLIER~',
-	meterMaint.latitude as '~LATITUDE~',
-	meterMaint.longitude as '~LONGITUDE~',
-	'~'+''+'~' as '~HHCOMMENTS~',
+	meterMaint.latitude as '~LATITUDE~', -- GIS meter GPS
+	meterMaint.longitude as '~LONGITUDE~', -- GIS meter GPS 
+	'~'+''+'~' as '~HHCOMMENTS~', --- ub_route_comment by ID
 	'~'+''+'~' as '~SERVICECOMMENTS~',
 	'~'+''+'~' as '~STOPESTIMATE~',
 	'' as '~LOCATIONCODE~',
 	'' as '~INSTRUCTIONCODE~',
 	'~'+''+'~' as '~TAMPERCODE~',
 	'' as 'AWCVALUE',
-	CONVERT(char(10),GETDATE(), 126) as '~UPDATEDATE~'
+	CONVERT(char(10),GETDATE(), 126) as '~UPDATEDATE~',
+	'' AS '~REMOVEDDATE~' -- vw_meter.removedDate
 FROM 
 	vw_customer customer
 JOIN

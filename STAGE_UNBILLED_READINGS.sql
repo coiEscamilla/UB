@@ -96,5 +96,5 @@ ON
 WHERE
 	meter.location_id <> 1 AND          -- Avoid warehouse meters
 	customerMaint.Status= 'A' AND       -- Only active accounts
-	customerMaint.bill_due_dt IS NULL   -- We only want unbilled readings
+	customerMaint.bill_due_dt IS NULL   -- We only want unbilled readings, TODO: check with Caleb
 ORDER BY [~CUSTOMERID~],[~LOCATIONID~]

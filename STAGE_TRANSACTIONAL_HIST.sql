@@ -47,3 +47,5 @@ JOIN
 	vw_customer customer
 ON
 	customer.customer_id = meterMaint.customer_id
+WHERE 
+	meterMaint.location_id <> 1 -- Avoid warehouse transactions
