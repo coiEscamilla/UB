@@ -55,8 +55,8 @@ SELECT DISTINCT
 	3 AS '~APPLICATION~',
 	'~'+LEFT(meterMaint.meter_num, 12) + '~' AS '~METERNUMBER~',
 	1 AS '~METERREGISTER~',
-	2 AS '~READCODE~', 
-	'~READTYPE~' = 
+	2 AS '~READINGCODE~', 
+	'~READINGTYPE~' = 
 		CASE
 			WHEN reading.Estimated LIKE '%N%' THEN 0 -- 'N' is an Actual Read
 			ELSE 1                                   -- 'Y' is Estimated Read
