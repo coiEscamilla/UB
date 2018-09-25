@@ -47,3 +47,15 @@ ON
 where addr.State IN ('AE', 'ARIZONA', 'BRITISH COLUMBI', 'COSTA RICA', 'FINLAND','IW','JAPAN','KA','KANSAS','LOUISIANA','MARYLAND',
 'ML','NADU','NB','NEV','ON','ONTARIO','ONTERIO','SANTA MARIE', 'SK','TS','UK','WC')
 ORDER BY addr.State
+
+
+
+SELECT
+	account_num as 'Account Number',
+	first_name as 'First Name',
+	customer_name 'Customer Name',
+	alt_name as 'Alternative Name',
+	Surname as 'Last Name'
+FROM ub_vw_customer
+WHERE ub_vw_customer.status = 'A' AND (first_name like '%/%' OR Surname LIKE '%/%')
+ORDER BY account_num
