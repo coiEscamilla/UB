@@ -42,25 +42,28 @@ TODO:
 ****************************************************/
 
 SELECT DISTINCT
-	'~' + LEFT(writeOffs.customer_id,15) + '~' AS '~CUSTOMERID~',
-	'~' + LEFT(locationMaint.location_id,15) + '~' AS '~LOCATIONID~',
-	'~APPLICATION~' =
+	RTRIM(CONVERT(CHAR(15), writeOffs.customer_id)) AS "CUSTOMERID",
+	RTRIM(CONVERT(CHAR(15), locationMaint.location_id)) AS "LOCATIONID",
+	"APPLICATION" =
 		CASE
 			WHEN writeOffs.description LIKE '%Energy%' THEN 1
 			WHEN writeOffs.description LIKE '%Sewer%' THEN 4
 			WHEN writeOffs.description LIKE '%Sanitation%' THEN 6
 			ELSE 3
 		END,
-	CONVERT(CHAR(10),writeOffs.date, 126) AS '~CHARGEDATE~',
-	'' AS '~WRITEOFFDATE~',
-	writeOffs.total_written_off AS '~WRITEOFFAMOUNT~',
-	writeOffs.amount AS '~AMOUNTREMAINING~',
-	'' AS '~RECEIVABLECODE~',
-	CONVERT(CHAR(10),GETDATE(), 126) AS '~UPDATEDATE~' -- YYYY-MM-DD 
+	NULL AS "CHARGEDATE",
+	CONVERT(CHAR(10),writeOffs.date, 126) AS "WRITEOFFDATE",
+	CONVERT(DECIMAL(11,2), writeOffs.total_written_off) AS "WRITEOFFAMOUNT",
+	CONVERT(DECIMAL(11,2), writeOffs.amount) AS "AMOUNTREMAINING",
+	NULL AS "RECEIVABLECODE",
+	CONVERT(CHAR(10),GETDATE(), 126) AS "UPDATEDATE" -- YYYY-MM-DD 
 
-FROM vw_write_off writeOffs
+FROM 
+	vw_write_off writeOffs
 JOIN
 	ub_vw_location_maint locationMaint
 ON
 	writeOffs.customer_id = locationMaint.customer_id
-WHERE locationMaint.location_id <> 1 -- Ignore warehouse meters
+WHERE 
+	locationMaint.location_id <> 1 -- Ignore warehouse meters
+ORDER BY CUSTOMERID, LOCATIONID

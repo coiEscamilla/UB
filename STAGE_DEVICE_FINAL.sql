@@ -184,13 +184,13 @@ SELECT DISTINCT
 	'~N~' AS '~OTHERDEVICEMARRY2~',
 	'~METERMAKE~' = 
 		CASE
-			WHEN deviceLookup.Make_ IS NULL THEN 99 -- Default
-			ELSE deviceLookup.Make_
+			WHEN deviceLookup.Make_num IS NULL THEN 99 -- Default
+			ELSE deviceLookup.Make_num
 		END,
 	'~METERSIZE~' = 
 		CASE
-			WHEN deviceLookup.Meter_Size_Index IS NULL THEN 12-- 12=VARIOUS in Device Config
-			ELSE deviceLookup.Meter_Size_Index
+			WHEN deviceLookup.Meter_Size_num IS NULL THEN 12-- 12=VARIOUS in Device Config
+			ELSE deviceLookup.Meter_Size_num
 		END,
 	NULL AS '~METERKIND~',
 	'~METERMODEL~' = 
@@ -199,13 +199,13 @@ SELECT DISTINCT
 			ELSE deviceLookup.meter_id_num END,
 	'~DIALS~' = 
 		CASE
-			WHEN deviceLookup.Total_of_dials IS NULL THEN 9 -- Deafault
-			ELSE deviceLookup.Total_of_dials
+			WHEN deviceLookup.totalDials IS NULL THEN 9 -- Deafault
+			ELSE deviceLookup.totalDials
 		END,
 	'~DEADZEROES~' = 
 		CASE
-			WHEN deviceLookup.Dead_Zeros_S_S IS NULL THEN 0 -- Default
-			ELSE deviceLookup.Dead_Zeros_S_S
+			WHEN deviceLookup.deadZeroes IS NULL THEN 0 -- Default
+			ELSE deviceLookup.deadZeroes
 		END,
 	'~READTYPE~' = 
 		CASE -- 'M' is a manual read, 'I' is an instrument read
@@ -251,7 +251,7 @@ ON -- Grab the Meter Maintenance table for the model_id field
 	meterMaint.location_id = meter.location_id AND
 	meterMaint.meter_id = meter.meter_id
 LEFT JOIN
-	oasis_test_User.SS_Meters deviceLookup
+	SS_MeterLookup deviceLookup
 ON -- Grab SS_Meters as a device lookup for fields S&S enQuesta needs
 	deviceLookup.model_id = meterMaint.model_id
 	

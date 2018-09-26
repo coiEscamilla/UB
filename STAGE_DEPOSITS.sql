@@ -79,11 +79,18 @@ SELECT DISTINCT
 	'~~' AS '~DEPOSITBILLEDFLAG~',
 	'' AS '~DEPOSITACCRUEDINTEREST~',
 	'' AS '~DEPOSITINTERESTCALCDATE~',
-	CONVERT(CHAR(10),deposits.last_consider_dt, 126) AS '~UPDATEDATE~' -- YYYY-MM-DD
+	CONVERT(CHAR(10),GETDATE(), 126) AS '~UPDATEDATE~'
 
 FROM ub_deposit deposits
 JOIN
 	ub_vw_location_maint locationMaint
 ON
 	deposits.customer_id = locationMaint.customer_id
+JOIN
+	vw_customer customer
+ON
+	customer.customer_id = deposits.customer_id
+WHERE
+	customer.Status = 'A' AND
+	deposits.orig_deposit > 0 -- We at least have a deposit
 ORDER BY [~CUSTOMERID~],[~LOCATIONID~]

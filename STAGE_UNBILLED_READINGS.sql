@@ -65,6 +65,7 @@ SELECT DISTINCT
 	CONVERT(CHAR(10), meterRead.prev_dt, 126) AS '~PREVREADDATE~',
 	CONVERT(DECIMAL(12,3),meter.CurrentReading) AS '~CURRREADING~',
 	CONVERT(DECIMAL(12,3),(meter.CurrentReading - meter.CurrentUsage))  AS '~PREVREADING~', -- subtract the usage from the current reading to get the last reading
+	'GAL' AS '~UNITOFMEASURE~',
 	CONVERT(DECIMAL(12,3),meter.CurrentUsage) AS '~RAWUSAGE~',
 	CONVERT(DECIMAL(12,3),(meter.CurrentUsage * meter.UsageMultiplier)) AS '~BILLINGUSAGE~',
 	meter.ReadingMultiplier AS '~METERMULTIPLIER~',
