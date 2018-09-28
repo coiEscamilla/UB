@@ -4,8 +4,8 @@ filepath:
 \\departments\32\UB Software Replacement\Conversion\sql
 ------------------------------------------------------
 
-version="1.0.0"
-Last Update: September 11, 2018               
+version="1.0.1"
+Last Update: September 26, 2018               
 ------------------------------------------------------
 Purpose:
 	Extract consumption history from Inhance to place
@@ -29,16 +29,24 @@ Assumptions:
 ------------------------------------------------------
 HISTORY:
 	September 11, 2018 - v1.0.0  - First Creation
+	September 26, 2018 - v1.0.1 - added service number field
 ------------------------------------------------------
 TODO:
 	
 ****************************************************/
-DECLARE @count INT
+with cte_billedDates as(
+	SELECT 
+		customer_id,
+		location_id
+	from 
+		vw_trans_charges
+)
+
 
 SELECT DISTINCT
 	'~'+ LEFT(customer.customer_id, 15) + '~' as '~CUSTOMERID~',
 	'~'+ LEFT(meterMaint.location_id, 15) + '~' as '~LOCATIONID~',
-	3 as '~APPLICATION~', --1-Electric, 3-Water, 4-Sewer,5-Gas
+	1 AS '~APPLICATION~', --1-Electric, 3-Water, 4-Sewer,5-Gas
 	ROW_NUMBER() OVER(PARTITION BY meterMaint.location_id ORDER BY meterMaint.meter_num ASC) AS '~SERVICENUMBER~', -- If we have multiple meters at each location, assign them an incremental service number
 	'~' + meterMaint.meter_num + '~' AS '~METERNUMBER~',
 	meterMaint.alt_met_num AS '~METERREGISTER~',
@@ -52,11 +60,11 @@ SELECT DISTINCT
 	CONVERT(CHAR(10), meterReading.prev_dt, 126) AS '~PREVREADDATE~',
 	reading.Reading AS '~CURREADING~',
 	(reading.Reading - reading.Usage) AS '~PREVREADING~',
-	'~KGAL~' AS '~UNITOFMEASURE~',
+	'~GAL~' AS '~UNITOFMEASURE~',
 	reading.Usage AS '~RAWUSAGE~',
 	NULL AS '~BILLINGUSAGE~',
 	1.0 AS '~METERMULTIPLIER~',
-	NULL AS '~BILLEDDATE~',
+	charges.TransactionDate AS '~BILLEDDATE~',
 	NULL AS '~THERMFACTOR~',
 	'~~' AS '~READERID~',
 	NULL AS '~BILLEDAMOUNT~',
@@ -83,6 +91,11 @@ ON
 	meterReading.location_id = meterMaint.location_id  AND
 	meterReading.meter_id = meterMaint.meter_id AND
 	meterReading.read_dt = reading.ReadDate -- We only want the latest record from this ub_meter_read table
+JOIN
+	vw_trans_charges charges
+ON
+	charges.customer_id = customer.customer_id AND
+	charges.location_id = meterMaint.location_id
 WHERE
 	meterMaint.location_id <> 1 -- Avoid warehouse meters
 ORDER BY [~CUSTOMERID~],[~LOCATIONID~]
