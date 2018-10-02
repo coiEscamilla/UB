@@ -36,10 +36,38 @@ Assumptions:
 ------------------------------------------------------
 HISTORY:
 	September 10, 2018 - v1.0.0  - First Creation
+	October 1, 2018 - v1.0.1 - Added compound meter support
 ------------------------------------------------------
 TODO:
 	
 ****************************************************/
+
+-- Grab Compound Meters from inhance
+-- Compound meters are meters with a prevailing zero and the exact same meter number
+WITH cte_compoundMeters
+AS (
+	SELECT location_id
+		,meternumber
+	FROM (
+		SELECT location_id
+			,Substring(meter_num, Patindex('%[^0]%', meter_num), Len(meter_num)) AS 'METERNUMBER'
+		FROM ub_vw_meter_maint
+		WHERE location_id IN (
+				SELECT locationid
+				FROM (
+					SELECT location_id AS 'LOCATIONID'
+						,Count(meter_num) AS 'MeterCount'
+					FROM ub_vw_meter_maint
+					WHERE location_id <> 1
+					GROUP BY location_id
+					) x
+				WHERE metercount > 1
+				)
+		) y
+	GROUP BY location_id
+		,METERNUMBER
+	HAVING Count(*) > 1
+	)
 
 -- ERT Query
 SELECT DISTINCT
@@ -159,12 +187,36 @@ UNION ALL
 SELECT DISTINCT
 	3 AS '~APPLICATION~',
 	0 AS '~DEVICETYPE~', -- 0 = Meter
-	'~' + LEFT(meter.MeterNumber,12) + '~' AS '~METERNUMBER~',
-	1 AS '~REGISTERNUM~',
-	301 AS '~BUILTCONFIG~',
-	301 AS '~INSTALLCONFIG~',
+	'~METERNUMBER~' = 
+		CASE
+			WHEN cte_compoundMeters.METERNUMBER IS NULL THEN ('~' + LEFT(meter.MeterNumber,15) + '~')
+			ELSE Substring(meter.MeterNumber, Patindex('%[^0]%', meter.MeterNumber), 15) -- We need the meter numbers to be the same for a compound meter so drop prevailing '0'
+		END,
+	'~REGISTERNUM~' = 
+		CASE
+			WHEN meter.MeterNumber = cte_compoundMeters.METERNUMBER THEN 1 --TODO: figure out whcih is hi/lo side of pipe
+			WHEN meter.MeterNumber = ('0' + cte_compoundMeters.METERNUMBER) THEN 2 
+			ELSE 1
+		END,
+	'~BUILTCONFIG~' =
+		CASE
+			WHEN cte_compoundMeters.location_id IS NULL THEN 301 -- 301=regular meter
+			WHEN cte_compoundMeters.location_id IS NOT NULL THEN 302 -- 302=compound meter
+			ELSE 301 -- Default to regular meter
+		END,
+	'~INSTALLCONFIG~' =
+		CASE
+			WHEN cte_compoundMeters.location_id IS NULL THEN 301 -- 301=regular meter
+			WHEN cte_compoundMeters.location_id IS NOT NULL THEN 302 -- 302=compound meter
+			ELSE 301 -- Default to regular meter
+		END,
 	'~Y~' AS '~BILLEDFLAG~',
-	1 AS '~REGISTERCONFIG~',
+	'~REGISTERCONFIG~' =
+		CASE
+			WHEN meter.MeterNumber = cte_compoundMeters.METERNUMBER THEN 1 --TODO: figure out whcih is hi/lo side of pipe
+			WHEN meter.MeterNumber = ('0' + cte_compoundMeters.METERNUMBER) THEN 2
+			ELSE 1
+		END,
 	'~' + LEFT(meter.MeterNumber, 12) + '~' AS '~SERIALNUMBER~',
 	'~OTHERDEVICETYPE1~' = 
 		CASE -- Check to see if this meter has a register
@@ -251,10 +303,13 @@ ON -- Grab the Meter Maintenance table for the model_id field
 	meterMaint.location_id = meter.location_id AND
 	meterMaint.meter_id = meter.meter_id
 LEFT JOIN
+	cte_compoundMeters
+ON
+	cte_compoundMeters.location_id = meterMaint.location_id
+LEFT JOIN
 	SS_MeterLookup deviceLookup
 ON -- Grab SS_Meters as a device lookup for fields S&S enQuesta needs
 	deviceLookup.model_id = meterMaint.model_id
-	
 WHERE
-	meter.MeterNumber IS NOT NULL AND meter.location_id <> 1
-ORDER BY [~DEVICETYPE~] DESC -- We need ERTs and Registers to be fed into the system first before meters
+	meter.location_id <> 1
+ORDER BY [~DEVICETYPE~] DESC, [~METERNUMBER~] ASC -- We need ERTs and Registers to be fed into the system first before meters

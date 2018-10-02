@@ -1,14 +1,15 @@
--- Select the top 30 consumers from Inhance
 
-SELECT DISTINCT TOP 30 
-	customer.customer_id, 
-	customer.FirstNameFirst,
+SELECT DISTINCT TOP 100
+	customerMaint.customer_id,
+	customer.FirstNameFirst as 'Name',
+	customerMaint.location_addr as 'Address',
 	SUM(reading.Usage) AS 'USAGE'
-FROM vw_customer customer
+FROM ub_vw_customer_maint customerMaint
 JOIN 
 	ub_vw_meter_maint meterMaint
 ON
-	customer.customer_id = meterMaint.location_id
+	customerMaint.customer_id = meterMaint.location_id
+JOIN vw_customer customer ON customer.customer_id = customerMaint.customer_id
 JOIN 
 	vw_reading reading
 ON 
@@ -16,5 +17,5 @@ ON
 	meterMaint.meter_id = reading.meter_id
 WHERE
 	 reading.ReadDate > DATEADD(DAY, -365, GETDATE())
-GROUP BY customer.customer_id, customer.FirstNameFirst
+GROUP BY customerMaint.customer_id, customer.FirstNameFirst, customerMaint.location_addr
 ORDER BY USAGE DESC
