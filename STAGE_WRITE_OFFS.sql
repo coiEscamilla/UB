@@ -41,29 +41,39 @@ TODO:
 
 ****************************************************/
 
+-- Inhance drops location IDs from inactive accounts. 
+-- We'll need to use the transaction table to get the last
+-- location ID before the service address was removed
+with CTE_TransactionsLocation AS (
+	SELECT 
+		customer_id,
+		location_id
+	FROM 
+		vw_gen_tran
+	WHERE 
+		Description = 'Service Address Removed' AND
+		TransactionDate > DATEADD(year, -1, GETDATE())
+)
+
 SELECT DISTINCT
-	RTRIM(CONVERT(CHAR(15), writeOffs.customer_id)) AS "CUSTOMERID",
-	--RTRIM(CONVERT(CHAR(15), locationMaint.location_id)) AS "LOCATIONID",
-	"APPLICATION" =
+	RTRIM(CONVERT(CHAR(15), writeOffs.customer_id)) AS 'CUSTOMERID',
+	RTRIM(CONVERT(CHAR(15), writeOffs.location_id)) AS 'LOCATIONID',
+	'APPLICATION' =
 		CASE
 			WHEN writeOffs.description LIKE '%Energy%' THEN 1
 			WHEN writeOffs.description LIKE '%Sewer%' THEN 4
 			WHEN writeOffs.description LIKE '%Sanitation%' THEN 6
 			ELSE 3
 		END,
-	NULL AS "CHARGEDATE",
-	CONVERT(CHAR(10),writeOffs.date, 126) AS "WRITEOFFDATE",
-	CONVERT(DECIMAL(11,2), writeOffs.total_written_off) AS "WRITEOFFAMOUNT",
-	CONVERT(DECIMAL(11,2), writeOffs.amount) AS "AMOUNTREMAINING",
-	99 AS "RECEIVABLECODE",
-	CONVERT(CHAR(10),GETDATE(), 126) AS "UPDATEDATE" -- YYYY-MM-DD 
-
+	NULL AS 'CHARGEDATE',
+	CONVERT(CHAR(10),writeOffs.date, 126) AS 'WRITEOFFDATE',
+	CONVERT(DECIMAL(11,2), writeOffs.total_written_off) AS 'WRITEOFFAMOUNT',
+	CONVERT(DECIMAL(11,2), writeOffs.amount) AS 'AMOUNTREMAINING',
+	99 AS 'RECEIVABLECODE',
+	CONVERT(CHAR(10),GETDATE(), 126) AS 'UPDATEDATE' -- YYYY-MM-DD 
 FROM 
 	vw_write_off writeOffs
---LEFT JOIN
---	ub_vw_location_maint locationMaint
---ON
---	writeOffs.customer_id = locationMaint.customer_id
---WHERE 
---	locationMaint.location_id <> 1 -- Ignore warehouse meters
-ORDER BY CUSTOMERID
+WHERE
+	writeOffs.location_id IS NOT NULL
+		AND writeOffs.date > DATEADD(year, -1, GETDATE())
+ORDER BY CUSTOMERID, LOCATIONID, APPLICATION

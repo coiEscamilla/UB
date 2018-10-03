@@ -126,8 +126,8 @@ SELECT DISTINCT RTRIM(CONVERT(VARCHAR(15), customer.customer_id)) AS 'CUSTOMERID
 	,-- current reading is latest
 	CONVERT(CHAR(10), meter.CurrentReadDate, 126) AS 'LASTREADDATE'
 	,1.00 AS 'MULTIPLIER'
-	,gisMeter._LATITUDE_ AS 'LATITUDE'
-	,gisMeter._LONGITUDE_ AS 'LONGITUDE'
+	,gisMeter.LATITUDE AS 'LATITUDE'
+	,gisMeter.LONGITUDE AS 'LONGITUDE'
 	,RTRIM(CONVERT(CHAR(80), routeComment.route_comment)) AS 'HHCOMMENTS'
 	,'' AS 'SERVICECOMMENTS'
 	,'' AS 'STOPESTIMATE'
@@ -146,8 +146,8 @@ INNER JOIN vw_income income ON income.location_id = meterMaint.location_id
 INNER JOIN SS_Rates_flatFile rates ON rates.Irving_Rate = income.RateCode
 INNER JOIN cte_serviceNumber ON cte_serviceNumber.location_id = meterMaint.location_id
 	AND cte_serviceNumber.meter_num = meterMaint.meter_num
-LEFT JOIN oasis_test_User.SS_GIS_Meter gisMeter ON -- Grab LAT/LONG values if they exist
-	meterMaint.location_id = gisMeter._UB_LOCATION_ID_
+LEFT JOIN SS_GIS_METER gisMeter ON -- Grab LAT/LONG values if they exist
+	meterMaint.location_id = gisMeter.LOCATIONID
 LEFT JOIN ub_route_comment routeComment ON -- Grab meter comments on the location if they exist
 	locationMaint.route_comment_id = routeComment.route_comment_id
 LEFT JOIN cte_compoundMeters ON cte_compoundMeters.location_id = meterMaint.location_id
